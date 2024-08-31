@@ -1,5 +1,7 @@
 sql:
-  address: 127.0.0.1
+  host: 127.0.0.1
+  port: 5432
   database: "dbname"
   username: "username"
   password: "password"
+  prefix: dcp_
