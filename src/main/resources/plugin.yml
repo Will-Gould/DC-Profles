@@ -1,0 +1,4 @@
+name: DC-Profiles
+version: '${project.version}'
+main: org.williamg.dcprofiles.DC_Profiles
+api-version: '1.21'
