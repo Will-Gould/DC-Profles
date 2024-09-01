@@ -2,3 +2,8 @@ name: DC-Profiles
 version: '${project.version}'
 main: org.williamg.dcprofiles.DCProfiles
 api-version: '1.21'
+
+commands:
+  status:
+    description: View profile and current name of specified player
+    usage: /status <player>
