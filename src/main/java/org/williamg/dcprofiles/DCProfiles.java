@@ -1,11 +1,17 @@
 package org.williamg.dcprofiles;
 
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.williamg.dcprofiles.command.CommandHandler;
 
-public final class DCProfiles extends JavaPlugin {
+public final class DCProfiles extends JavaPlugin implements CommandExecutor {
 
     DatabaseManager dbManager;
+    CommandHandler commandHandler;
 
     @Override
     public void onEnable() {
@@ -20,25 +26,20 @@ public final class DCProfiles extends JavaPlugin {
         String sqlPassword = config.getString("sql.password");
         String prefix = config.getString("sql.prefix");
 
-        //Create database manager and test connection
+        //Create database manager and connection
         dbManager = new DatabaseManager(this, sqlHost, sqlPort, sqlDatabase, sqlUser, sqlPassword, prefix);
-        try{
-            dbManager.getConnection().isValid(5);
-            this.getLogger().info("Successfully connected to database");
-        }catch (Exception e){
-            this.getLogger().severe("Failed to connect to database disabling plugin...");
-            onDisable();
-        }
 
         //Initialise database
         initialiseDatabase();
+
+        //Create command handler
+        commandHandler = new CommandHandler(this);
 
     }
 
     @Override
     public void onDisable() {
-        
-        this.getServer().getPluginManager().disablePlugin(this);
+        this.getLogger().info("Disabled");
     }
 
     private void initialiseDatabase() {
@@ -49,5 +50,15 @@ public final class DCProfiles extends JavaPlugin {
             this.getLogger().severe("Failed to initialise database disabling plugin...");
             onDisable();
         }
+    }
+
+    @Override
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
+        this.commandHandler.handleCommand(sender, label, args);
+        return true;
+    }
+
+    public DatabaseManager getDatabaseManager() {
+        return dbManager;
     }
 }

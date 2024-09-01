@@ -2,14 +2,15 @@ package org.williamg.dcprofiles.command;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.williamg.dcprofiles.DCProfiles;
+import org.williamg.dcprofiles.command.commands.Status;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CommandHandler {
 
@@ -19,6 +20,8 @@ public class CommandHandler {
     public CommandHandler(DCProfiles plugin) {
         this.plugin = plugin;
         this.commands = new LinkedHashMap<>();
+        loadCommands();
+        setCommandExecuter();
     }
 
     public void handleCommand(CommandSender sender, String label, String[] args) {
@@ -61,17 +64,18 @@ public class CommandHandler {
             return;
         }
 
-        //All clear run the command
-        try{
-            if(!c.execute(this, sender, args)){
-                showUsage(sender, c);
-                return;
+        //All clear run the command async to avoid database latency from affecting gameplay
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try{
+                if(!c.execute(this, sender, args)){
+                    showUsage(sender, c);
+                    return;
+                }
+            }catch(Exception e){
+                //e.printStackTrace();
+                this.plugin.getLogger().severe("An error occurred while executing this command");
             }
-            return;
-        }catch(Exception e){
-            //e.printStackTrace();
-            this.plugin.getLogger().severe("An error occurred while executing this command");
-        }
+        });
     }
 
     private List<Command> getMatches(String command) {
@@ -91,7 +95,7 @@ public class CommandHandler {
     }
 
     private void loadCommands() {
-
+        load(Status.class);
     }
 
     private void load(Class<? extends Command> c){
@@ -104,5 +108,21 @@ public class CommandHandler {
         }catch (Exception e){
             this.plugin.getLogger().severe("Error loading command " + c.getName());
         }
+    }
+
+    private void setCommandExecuter(){
+        ConfigurationSection commandSection =  this.plugin.getConfig().getConfigurationSection("commands");
+        if(commandSection == null){
+            return;
+        }
+        commandSection.getKeys(false).forEach(key -> {
+            if(key != null){
+                Objects.requireNonNull(this.plugin.getCommand(key)).setExecutor(this.plugin);
+            }
+        });
+    }
+
+    public DCProfiles getPlugin() {
+        return plugin;
     }
 }

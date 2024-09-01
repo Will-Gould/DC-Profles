@@ -2,14 +2,20 @@ package org.williamg.dcprofiles;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.HikariProxyPreparedStatement;
+import com.zaxxer.hikari.pool.HikariProxyResultSet;
 import org.bukkit.Bukkit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 @SuppressWarnings("SqlNoDataSourceInspection")
 public class DatabaseManager {
@@ -17,7 +23,6 @@ public class DatabaseManager {
     private final DCProfiles plugin;
     private Connection connection = null;
     private final HikariDataSource dataSource;
-    private Integer timeoutTask;
     private final String prefix;
 
     public DatabaseManager(DCProfiles plugin, String host, String port, String database, String user, String pass, String prefix) {
@@ -36,57 +41,78 @@ public class DatabaseManager {
         config.setJdbcUrl(url);
         this.dataSource = new HikariDataSource(config);
 
-    }
-
-    private void connect() throws SQLException {
-        this.connection = this.dataSource.getConnection();
-//        try{
-//            this.connection = dataSource.getConnection();
-//        }catch(SQLException e){
-//            this.plugin.getLogger().severe("Error connecting to database");
-//            return false;
-//        }
-//        return true;
+        //Connect to database disable plugin if unable to connect
+        try{
+            createConnection();
+            this.plugin.getLogger().info("Successfully connected to database ");
+        } catch (SQLException e) {
+            this.plugin.getLogger().severe("Failed to connect to database disabling plugin...");
+            Bukkit.getPluginManager().disablePlugin(this.plugin);
+        }
     }
 
     public Connection getConnection() {
-        if(connection == null){
-            try {
-                connect();
-            } catch (SQLException e) {
-                this.plugin.getLogger().severe("Error connecting to database");
-                return null;
-            }
-        }else{
-            //If the connection is open reset the timeout to the next interval after this connection
-            cancelTimoutTask();
-            createTimoutTask(this);
+        if(validConnection()){
+           return connection;
         }
-        return connection;
+
+        //Attempt to connect to database if unsuccessful disable plugin
+        try{
+            this.plugin.getLogger().info("Attempting to re-connect to database...");
+            createConnection();
+            return this.connection;
+        }catch (SQLException e) {
+            this.plugin.getLogger().severe("Failed to connect to database disabling plugin...");
+            Bukkit.getPluginManager().disablePlugin(this.plugin);
+        }
+        return null;
     }
 
-    private void createTimoutTask(DatabaseManager manager) {
-        this.timeoutTask = Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    manager.connection.close();
-                    manager.plugin.getLogger().info("Idle connection closed");
-                } catch (SQLException e) {
-                    manager.plugin.getLogger().warning("Failed to close connection");
-                }
-                manager.connection = null;
+    public List<Profile> getProfilesByName(String n){
+        ArrayList<Profile> users = new ArrayList<>();
+        Connection c = getConnection();
+
+        try{
+            PreparedStatement nameQuery = c.prepareStatement("SELECT * FROM " + prefix + "profiles WHERE name=?");
+            nameQuery.setString(1, n);
+            ResultSet resultSet = nameQuery.executeQuery();
+            while(resultSet.next()){
+                Profile p = new Profile(
+                        resultSet.getString("player_uuid"),
+                        resultSet.getString("name"),
+                        resultSet.getString("ip"),
+                        resultSet.getTimestamp("last_online"));
+                users.add(p);
             }
-        }, 300*20);
+        } catch (SQLException e) {
+            this.plugin.getLogger().severe("Failed to retrieve profiles from database...");
+            return null;
+        }
+
+        return users;
     }
 
-    private void cancelTimoutTask(){
-        Bukkit.getScheduler().cancelTask(this.timeoutTask);
+    private void createConnection() throws SQLException {
+        this.connection = this.dataSource.getConnection();
+    }
+
+    private boolean validConnection() {
+        //Check if connection is null first
+        if(this.connection == null){
+            return false;
+        }
+        //Check if connection is open
+        try{
+            this.connection.isValid(5);
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
     }
 
     public void initialiseDatabase() throws SQLException {
-        if(connection == null){
-            connect();
+        if(this.connection == null){
+            throw new SQLException("Database connection is not available");
         }
 
         PreparedStatement profilesStmt = this.connection.prepareStatement("CREATE TABLE IF NOT EXISTS " + prefix + "profiles(" +
