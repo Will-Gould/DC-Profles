@@ -51,8 +51,7 @@ public class Status implements Command {
         }
         profiles.forEach(profile -> {
             sender.sendMessage(Component.text("============= Player Profile ============="));
-            sender.sendMessage(Component.text("Name: " + profile.getName()));
-
+            sender.sendMessage(Component.text("Name: " + profile.getCurrentName()));
         });
     }
 }
