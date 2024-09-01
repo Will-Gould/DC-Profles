@@ -7,6 +7,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.williamg.dcprofiles.command.CommandHandler;
+import org.williamg.dcprofiles.listeners.PlayerJoinListener;
 
 public final class DCProfiles extends JavaPlugin implements CommandExecutor {
 
@@ -35,6 +36,8 @@ public final class DCProfiles extends JavaPlugin implements CommandExecutor {
         //Create command handler
         commandHandler = new CommandHandler(this);
 
+        //Register listeners
+        this.getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
     }
 
     @Override

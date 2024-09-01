@@ -1,19 +1,26 @@
 package org.williamg.dcprofiles;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.UUID;
 
 public class Profile {
 
     private final UUID uuid;
-    private final String name;
+    private final String currentName;
     private final String ip;
+    private List<String> oldNames;
     private Timestamp lastOnline;
 
-    public Profile(String uuid, String name, String ip, Timestamp lastOnline) {
+    public Profile(String uuid, List<String> names, String ip, Timestamp lastOnline) {
         this.uuid = UUID.fromString(uuid);
-        this.name = name;
+        this.currentName = names.get(0);
+        //Add list of old names and remove current name from old names list
+        this.oldNames = names;
+        this.oldNames.remove(names.get(0));
+
         this.ip = ip;
         setTimestamp(lastOnline);
     }
@@ -22,12 +29,20 @@ public class Profile {
         return uuid;
     }
 
-    public String getName() {
-        return name;
+    public String getCurrentName() {
+        return currentName;
     }
 
     public String getIp() {
         return ip;
+    }
+
+    public List<String> getOldNames() {
+        return oldNames;
+    }
+
+    public void setOldNames(List<String> oldNames) {
+        this.oldNames = oldNames;
     }
 
     public Timestamp getLastOnline() {
