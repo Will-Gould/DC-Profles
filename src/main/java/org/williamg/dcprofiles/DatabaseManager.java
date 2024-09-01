@@ -30,7 +30,6 @@ public class DatabaseManager {
         props.setProperty("dataSource.user", user);
         props.setProperty("dataSource.password", pass);
         props.setProperty("dataSource.databaseName", database);
-
         this.prefix = prefix;
 
         HikariConfig config = new HikariConfig(props);
