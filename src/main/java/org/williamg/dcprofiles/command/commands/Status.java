@@ -3,7 +3,8 @@ package org.williamg.dcprofiles.command.commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
-import org.williamg.dcprofiles.DatabaseManager;
+import org.williamg.dcprofiles.Name;
+import org.williamg.dcprofiles.database.DatabaseManager;
 import org.williamg.dcprofiles.Profile;
 import org.williamg.dcprofiles.command.Command;
 import org.williamg.dcprofiles.command.CommandHandler;
@@ -39,6 +40,8 @@ public class Status implements Command {
             return true;
         }
 
+        //If there are multiple profiles that have used that name check if any of them are the current user of that name
+
         //Display known profiles
         displayProfiles(sender, profiles);
 
@@ -51,7 +54,21 @@ public class Status implements Command {
         }
         profiles.forEach(profile -> {
             sender.sendMessage(Component.text("============= Player Profile ============="));
-            sender.sendMessage(Component.text("Name: " + profile.getCurrentName()));
+            displayNames(sender, profile);
         });
+    }
+
+    private void displayNames(CommandSender sender, Profile profile) {
+        List<Name> names = profile.getNames();
+        sender.sendMessage(Component.text("Name: " + profile.getCurrentName().getName()));
+        if(names.size() > 1) {
+            sender.sendMessage(Component.text("Formerly known as: ", NamedTextColor.GRAY));
+        }
+        for(Name name : names) {
+            if(name.equals(profile.getCurrentName())) {
+                continue;
+            }
+            sender.sendMessage(Component.text(" - " + name.getName()));
+        }
     }
 }
