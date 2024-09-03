@@ -113,7 +113,6 @@ public class NameManager {
             nameStmt.executeUpdate();
             nameStmt.close();
         } catch (SQLException e) {
-            e.printStackTrace();
             this.plugin.getLogger().severe("Could not insert new name for player: " + name.getUuid());
         }
     }
@@ -122,6 +121,7 @@ public class NameManager {
         Connection c = dbManager.getConnection();
 
         PreparedStatement namesStmt = c.prepareStatement("CREATE TABLE IF NOT EXISTS " + prefix + "names(" +
+                "id serial PRIMARY KEY," +
                 "player_uuid varchar(255), " +
                 "name varchar(20), " +
                 "last_used timestamp DEFAULT CURRENT_TIMESTAMP" +
