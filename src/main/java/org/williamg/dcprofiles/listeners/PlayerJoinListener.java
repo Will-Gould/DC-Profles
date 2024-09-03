@@ -1,5 +1,6 @@
 package org.williamg.dcprofiles.listeners;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,46 +24,21 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        //Check if player exists in system
-        Player player = event.getPlayer();
-        Profile profile = null;
-        try{
-            profile = this.plugin.getDatabaseManager().getProfile(player.getUniqueId());
-        }catch (SQLException e){
-            this.plugin.getLogger().warning("Error retrieving profile for " + player.getName());
-            return;
-        }
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            //Check if player exists in system
+            Player player = event.getPlayer();
+            Profile profile = null;
+            profile = this.plugin.getDatabaseManager().getPlayerProfile(player);
 
-        //If a profile was not found create one
-        if(profile == null){
-            try{
-                createProfile(player);
-            } catch (SQLException e) {
-                this.plugin.getLogger().severe("Could not create profile for " + player.getName());
+            //If a profile was not found create one
+            if(profile == null){
+                this.plugin.getDatabaseManager().createNewProfile(player);
+                return;
             }
-            return;
-        }
 
-        //Update profile
-        boolean updateName = !profile.getCurrentName().equals(player.getName());
-        try {
-            this.plugin.getDatabaseManager().updateProfile(player, updateName);
-        } catch (SQLException e) {
-            this.plugin.getLogger().severe("Could not update profile for " + player.getName());
-        }
-
-    }
-
-    private void createProfile(Player player) throws SQLException {
-        List<String> names = new ArrayList<>();
-        names.add(player.getName());
-        Profile p = new Profile(
-                player.getUniqueId().toString(),
-                names,
-                Objects.requireNonNull(player.getAddress()).getHostString(),
-                new Timestamp(System.currentTimeMillis())
-        );
-        this.plugin.getDatabaseManager().insertProfile(p);
+            //Profile was found therefore update profile
+            plugin.getDatabaseManager().updateProfile(player);
+        });
     }
 
 }
