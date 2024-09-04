@@ -2,14 +2,18 @@ package org.williamg.dcprofiles.command.commands;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.williamg.dcprofiles.Name;
+import org.williamg.dcprofiles.Note;
 import org.williamg.dcprofiles.database.DatabaseManager;
 import org.williamg.dcprofiles.Profile;
 import org.williamg.dcprofiles.command.Command;
 import org.williamg.dcprofiles.command.CommandHandler;
 import org.williamg.dcprofiles.command.CommandInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @CommandInfo(
@@ -42,33 +46,20 @@ public class Status implements Command {
 
         //If there are multiple profiles that have used that name check if any of them are the current user of that name
 
-        //Display known profiles
-        displayProfiles(sender, profiles);
+        //Get notes and display known profiles
+        displayProfiles(cmdHandler.getPlugin().getDatabaseManager(), sender, profiles);
 
         return true;
     }
 
-    private void displayProfiles(CommandSender sender, List<Profile> profiles) {
+    private void displayProfiles(DatabaseManager dbManager, CommandSender sender, List<Profile> profiles) {
         if(profiles.size() > 1) {
             sender.sendMessage(Component.text("Multiple profiles matching that name were found", NamedTextColor.LIGHT_PURPLE));
         }
         profiles.forEach(profile -> {
-            sender.sendMessage(Component.text("============= Player Profile ============="));
-            displayNames(sender, profile);
+            List<Note> notes = dbManager.getNotes(profile.getUuid());
+            profile.printProfile(sender, notes);
         });
     }
 
-    private void displayNames(CommandSender sender, Profile profile) {
-        List<Name> names = profile.getNames();
-        sender.sendMessage(Component.text("Name: " + profile.getCurrentName().getName()));
-        if(names.size() > 1) {
-            sender.sendMessage(Component.text("Formerly known as: ", NamedTextColor.GRAY));
-        }
-        for(Name name : names) {
-            if(name.equals(profile.getCurrentName())) {
-                continue;
-            }
-            sender.sendMessage(Component.text(" - " + name.getName()));
-        }
-    }
 }

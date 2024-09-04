@@ -5,3 +5,5 @@ sql:
   username: "username"
   password: "password"
   prefix: dcp_
+settings:
+  auto_mojang_sync: false

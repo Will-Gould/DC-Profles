@@ -1,5 +1,7 @@
 package org.williamg.dcprofiles;
 
+import net.kyori.adventure.text.Component;
+
 import java.util.List;
 
 public class Util {
@@ -13,4 +15,5 @@ public class Util {
         }
         return currentName;
     }
+
 }
