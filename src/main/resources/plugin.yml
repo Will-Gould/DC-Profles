@@ -7,3 +7,6 @@ commands:
   status:
     description: View profile and current name of specified player
     usage: /status <player>
+  addnote:
+    description: Adds note to a player's permanent record
+    usage: /addnote <target player> <note>

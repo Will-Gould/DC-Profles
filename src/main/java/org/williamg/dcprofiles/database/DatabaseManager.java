@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.williamg.dcprofiles.DCProfiles;
 import org.williamg.dcprofiles.Name;
+import org.williamg.dcprofiles.Note;
 import org.williamg.dcprofiles.Profile;
 
 import java.sql.*;
@@ -94,6 +95,15 @@ public class DatabaseManager {
         return profiles;
     }
 
+    public List<Profile> getCurrentProfilesByName(String name) {
+        List<Profile> profiles = getProfilesByName(name);
+
+        //Remove any profiles which are not using this name as current name
+        profiles.removeIf(profile -> !profile.getCurrentName().getName().equals(name));
+
+        return profiles;
+    }
+
     public void updateProfile(Player player) {
         this.nameManager.updateName(player);
         this.profileManager.updateProfile(player);
@@ -111,6 +121,14 @@ public class DatabaseManager {
         );
         this.profileManager.insertProfile(profile);
         this.nameManager.insertName(name);
+    }
+
+    public List<Note> getNotes(UUID uuid) {
+        return this.notesManager.getNotes(uuid);
+    }
+
+    public void addNote(Note note) {
+        this.notesManager.insertNote(note);
     }
 
     private void createConnection() throws SQLException {

@@ -1,10 +1,15 @@
 package org.williamg.dcprofiles.database;
 
 import org.williamg.dcprofiles.DCProfiles;
+import org.williamg.dcprofiles.Note;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @SuppressWarnings("SqlNoDataSourceInspection")
 public class NotesManager {
@@ -17,6 +22,45 @@ public class NotesManager {
         this.plugin = plugin;
         this.dbManager = plugin.getDatabaseManager();
         this.prefix = plugin.getDatabaseManager().getPrefix();
+    }
+
+    public List<Note> getNotes(UUID uuid){
+        List<Note> notes = new ArrayList<>();
+        Connection c = dbManager.getConnection();
+
+        try{
+            PreparedStatement noteStmt = c.prepareStatement("SELECT * FROM " + prefix + "notes WHERE player_uuid=?");
+            noteStmt.setString(1, uuid.toString());
+            ResultSet rs = noteStmt.executeQuery();
+            while(rs.next()){
+                notes.add(new Note(
+                        UUID.fromString(rs.getString("player_uuid")),
+                        rs.getString("note"),
+                        UUID.fromString(rs.getString("staff_uuid")),
+                        rs.getTimestamp("time"))
+                );
+            }
+            rs.close();
+        }catch (SQLException e){
+            this.plugin.getLogger().warning("Failed to retrieve notes from database for player: " + uuid);
+        }
+        return notes;
+    }
+
+    public void insertNote(Note note){
+        Connection c = dbManager.getConnection();
+
+        try{
+            PreparedStatement noteStmt = c.prepareStatement("INSERT INTO " + prefix + "notes (player_uuid, time, staff_uuid, note) VALUES (?, ?, ?, ?)");
+            noteStmt.setString(1, note.getPlayerUUID().toString());
+            noteStmt.setTimestamp(2, note.getTimestamp());
+            noteStmt.setString(3, note.getStaffUUID().toString());
+            noteStmt.setString(4, note.getNote());
+            noteStmt.executeUpdate();
+            noteStmt.close();
+        } catch (SQLException e) {
+            this.plugin.getLogger().warning("Failed to insert note for player: " + note.getPlayerUUID());
+        }
     }
 
     public void initialiseNotesTable() throws SQLException {

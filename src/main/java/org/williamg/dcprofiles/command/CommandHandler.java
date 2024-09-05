@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.williamg.dcprofiles.DCProfiles;
+import org.williamg.dcprofiles.command.commands.AddNote;
 import org.williamg.dcprofiles.command.commands.Status;
 
 import java.util.*;
@@ -96,6 +97,7 @@ public class CommandHandler {
 
     private void loadCommands() {
         load(Status.class);
+        load(AddNote.class);
     }
 
     private void load(Class<? extends Command> c){
