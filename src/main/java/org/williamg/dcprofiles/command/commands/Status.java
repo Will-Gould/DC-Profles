@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.williamg.dcprofiles.DCProfiles;
 import org.williamg.dcprofiles.Name;
 import org.williamg.dcprofiles.Note;
 import org.williamg.dcprofiles.database.DatabaseManager;
@@ -47,18 +48,18 @@ public class Status implements Command {
         //If there are multiple profiles that have used that name check if any of them are the current user of that name
 
         //Get notes and display known profiles
-        displayProfiles(cmdHandler.getPlugin().getDatabaseManager(), sender, profiles);
+        displayProfiles(cmdHandler.getPlugin(), sender, profiles);
 
         return true;
     }
 
-    private void displayProfiles(DatabaseManager dbManager, CommandSender sender, List<Profile> profiles) {
+    private void displayProfiles(DCProfiles plugin, CommandSender sender, List<Profile> profiles) {
         if(profiles.size() > 1) {
             sender.sendMessage(Component.text("Multiple profiles matching that name were found", NamedTextColor.LIGHT_PURPLE));
         }
         profiles.forEach(profile -> {
-            List<Note> notes = dbManager.getNotes(profile.getUuid());
-            profile.printProfile(sender, notes);
+            List<Note> notes = plugin.getDatabaseManager().getNotes(profile.getUuid());
+            profile.printProfile(plugin, sender, notes);
         });
     }
 

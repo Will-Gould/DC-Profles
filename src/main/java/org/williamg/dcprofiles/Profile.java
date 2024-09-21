@@ -3,8 +3,8 @@ package org.williamg.dcprofiles;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -23,14 +23,24 @@ public class Profile {
         setTimestamp(lastOnline);
     }
 
-    public void printProfile(CommandSender sender, List<Note> notes) {
-        Player player = Bukkit.getPlayer(this.uuid);
-        sender.sendMessage(Component.text("============= Player Profile ============="));
-        //If bukkit cannot find player use value retrieved from db, otherwise use display name
-        if(player == null) {
-            sender.sendMessage(Component.text("-------------" + getCurrentName() + "-------------"));
-        }else {
-            sender.sendMessage(player.displayName().asComponent());
+    public void printProfile(DCProfiles plugin, CommandSender sender, List<Note> notes) {
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(this.uuid);
+        sender.sendMessage(Component.text("============= Player Profile =============", NamedTextColor.DARK_PURPLE));
+
+        //Display player's rank and use prefix if permissions and chat are hooked
+        if(plugin.getPermissions() != null && plugin.getChat() != null) {
+            String playerGroup = plugin.getPermissions().getPrimaryGroup(Bukkit.getWorlds().get(0).getName(), offlinePlayer);
+            String groupPrefix = Util.colorise(plugin.getChat().getGroupPrefix(Bukkit.getWorlds().get(0).getName(), playerGroup));
+
+            sender.sendMessage(groupPrefix + getCurrentName().getName());
+            sender.sendMessage("§7Rank: " + groupPrefix + playerGroup);
+        }else{
+            sender.sendMessage(Component.text(getCurrentName().getName()));
+        }
+
+        //Check if player has permission to view IP addresses
+        if(sender.hasPermission("profiler.status.ip")){
+            sender.sendMessage(Component.text("IP Address: ", NamedTextColor.GRAY).append(Component.text(ip, NamedTextColor.AQUA)));
         }
 
         //Display previously used names if available
@@ -44,10 +54,12 @@ public class Profile {
         }
 
         //Display last online
-        sender.sendMessage(Component.text("Last online: ", NamedTextColor.DARK_GRAY).append(Component.text(lastOnline.toString(), NamedTextColor.LIGHT_PURPLE)));
+        sender.sendMessage(Component.text("Last online: ", NamedTextColor.GRAY).append(Component.text(lastOnline.toString(), NamedTextColor.LIGHT_PURPLE)));
 
-        //display notes
-        printNotes(sender, notes);
+        //display notes if player has permission
+        if(sender.hasPermission("profiler.status.notes")){
+            printNotes(sender, notes);
+        }
     }
 
     public void printNotes(CommandSender sender, List<Note> notes) {
@@ -80,9 +92,6 @@ public class Profile {
     }
 
     private void setTimestamp(Timestamp timeStamp){
-        /**
-         * @param timestamp = null current timestamp will be used
-         **/
         if(timeStamp == null){
             this.lastOnline = new Timestamp(Calendar.getInstance().getTime().getTime());
         }else{

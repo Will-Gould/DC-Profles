@@ -2,6 +2,7 @@ name: DC-Profiles
 version: '${project.version}'
 main: org.williamg.dcprofiles.DCProfiles
 api-version: '1.21'
+softdepend: [Vault, Luckperms, ChatEx]
 
 commands:
   status:
