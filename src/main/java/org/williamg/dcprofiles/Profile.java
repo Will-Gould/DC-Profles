@@ -65,7 +65,8 @@ public class Profile {
     public void printNotes(CommandSender sender, List<Note> notes) {
         notes.sort(Comparator.comparing(Note::getTimestamp));
         sender.sendMessage(Component.text("------------ Notes -------------", NamedTextColor.BLUE));
-        notes.forEach(n -> {
+        //Use reversed list to put most recent notes at the top
+        notes.reversed().forEach(n -> {
            n.printNote(sender);
            sender.sendMessage(Component.text("_______________________________________", NamedTextColor.DARK_AQUA));
         });
