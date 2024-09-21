@@ -48,8 +48,7 @@ public class NameManager {
         Name currentName = new Name(name, uuid, currentTimestamp);
 
         //Look for existing use of name
-        List<Name> playerNames = new ArrayList<>();
-        playerNames = getNames(uuid);
+        List<Name> playerNames = getNames(uuid);
 
         //Check if any name matches
         boolean matchFound = false;

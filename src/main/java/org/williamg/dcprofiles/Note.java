@@ -8,7 +8,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.sql.Timestamp;
-import java.util.Comparator;
 import java.util.UUID;
 
 public class Note {
@@ -28,11 +27,13 @@ public class Note {
 
     public void printNote(CommandSender sender) {
         Player staffMember = Bukkit.getPlayer(staffUUID);
+        OfflinePlayer staff = Bukkit.getOfflinePlayer(staffUUID);
+
         if(staffMember != null) {
-            sender.sendMessage(Component.text("Staff member: ", NamedTextColor.DARK_GRAY).append(staffMember.displayName().asComponent()));
+            sender.sendMessage(Component.text("Reporter: ", NamedTextColor.GRAY).append(staffMember.displayName().asComponent()).color(NamedTextColor.BLUE));
         }
-        sender.sendMessage(Component.text("Date: ", NamedTextColor.DARK_GRAY).append(Component.text(timestamp.toString(), NamedTextColor.LIGHT_PURPLE)));
-        sender.sendMessage(Component.text("\"", NamedTextColor.DARK_GRAY).append(Component.text(note, NamedTextColor.GRAY)).append(Component.text("\"", NamedTextColor.DARK_GRAY)));
+        sender.sendMessage(Component.text("Date: ", NamedTextColor.GRAY).append(Component.text(timestamp.toString(), NamedTextColor.LIGHT_PURPLE)));
+        sender.sendMessage(Component.text("\"", NamedTextColor.DARK_GRAY).append(Component.text(note, NamedTextColor.WHITE)).append(Component.text("\"", NamedTextColor.DARK_GRAY)));
     }
 
     public UUID getPlayerUUID() {
